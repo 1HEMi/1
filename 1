@@ -1,0 +1,214 @@
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+
+void DelElement(float** mas, int n, float** tmp_matr, int numrow, int ncol)
+{
+	int in = 0;
+	int jn = 0;
+	for (int i = 0; i < n; i++)
+	{
+		if (i != numrow)
+		{
+			for (int j = 0; j < n; j++)
+			{
+				if (j != ncol)
+				{
+					tmp_matr[in][jn] = mas[i][j];
+
+				}
+				else continue;
+				jn++;
+			}
+			jn = 0;
+			in++;
+		}
+		else continue;
+	}
+}
+
+float Determinant(float** arr, int n)
+{
+	float tmp = 0;
+	int k = 1;
+	if (n == 1)
+		tmp = arr[0][0];
+	else
+		if (n == 2)
+			tmp = arr[0][0] * arr[1][1] - arr[1][0] * arr[0][1];
+		else 
+		{
+			for (int i = 0; i < n; i++)
+			{
+				int m = n - 1;
+				int** tmp_matr = malloc(m * sizeof(int));
+				for (int j = 0; j < m; j++)
+					tmp_matr[j] = malloc(m * sizeof(int));
+				DelElement(arr, n, tmp_matr, 0, i);
+				tmp = tmp + k * arr[0][i] * Determinant(tmp_matr, m);
+				k = -k;
+				free(tmp_matr);
+			}
+
+		}
+	return tmp;
+}
+
+void MatrixT(float** matr, float** matrt, int n)
+{
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			matrt[j][i] = matr[i][j];
+
+}
+
+void num_1()
+{
+	int n, m;
+	printf("Enter size of matrix:");
+	scanf_s("%d %d", &n, &m);
+	if ((n != m) || (n < 1))
+	{
+		printf("Incorrect size of matrix");
+		exit(EXIT_FAILURE);
+	}
+	float** arr = (float**)malloc(n * (sizeof(float*)));
+	float** matr = (float**)malloc(n * (sizeof(float*)));
+	float** matrt = (float**)malloc(n * (sizeof(float*)));
+	for (int i = 0; i < n; ++i)
+	{
+		arr[i] = (float*)malloc(n * (sizeof(float)));
+		matr[i] = (float**)malloc(n * (sizeof(float*)));
+		matrt[i] = (float**)malloc(n * (sizeof(float*)));
+	}
+	printf("Elements:\n");
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			printf("mas[%d][%d] = ", i, j);
+			scanf_s("%f", &arr[i][j]);
+
+		}
+	}
+	int Det = (Determinant(arr, n));
+	printf("Determinant = %d\n", Det);
+	if (Det == 0)
+	{
+		printf("determinant = 0, don't have inverse matrix.\n");
+		exit(EXIT_FAILURE);
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			int m = n - 1;
+			float** tmp_matr = (float*)malloc(n * sizeof(float));
+			for (int k = 0; k < m; k++)
+				tmp_matr[k] = ((float*)malloc(n * sizeof(float)));
+			DelElement(arr, n, tmp_matr, i, j);
+			matr[i][j] = pow(-1.0, i + j + 2) * Determinant(tmp_matr, m) / Det;
+
+		}
+	}
+	MatrixT(matr, matrt, n);
+	printf("\n");
+
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			printf("%3f", matrt[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void num_2()
+{
+	int n, m;
+	printf("Enter number of quantities:");
+	scanf_s("%d", &n);
+	printf("Enter number of equations:");
+	scanf_s("%d", &m);
+	if ((n != m) || (n < 1))
+	{
+		printf("Incorrect size of matrix");
+		exit(EXIT_FAILURE);
+	}
+	float** arr = (float**)malloc(n * (sizeof(float*)));
+	float* arr_ratios = (float*)malloc(n * (sizeof(float)));
+	for (int i = 0; i < n; ++i)
+	{
+		arr[i] = (float*)malloc(n * sizeof(float));
+
+	}
+	printf("elements:\n");
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			printf("arr[%d][%d] = ", i, j);
+			scanf_s("%f", &arr[i][j]);
+			
+		}
+	}
+
+	printf("Enter the column:\n");
+	for (int i = 0; i < n; i++)
+	{
+		printf("num %d:", i + 1);
+		scanf_s("%f", &arr_ratios[i]);
+	}
+	int Detk = Determinant(arr, n);
+	if (Detk == 0)
+	{
+		printf("Matrix with det = 0 cannot be solved with Krammer method.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	float** arr_determinant = (float**)malloc(n * (sizeof(float*)));
+	float* arr_dets = (float*)malloc(n * (sizeof(float)));
+	for (int i = 0; i < n; ++i)
+	{
+		arr_determinant[i] = (float*)malloc(n * sizeof(float));
+	}
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			arr_determinant[i][j] = arr[i][j];
+		}
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			arr_determinant[j][i] = arr_ratios[j];
+		}
+		arr_dets[i] = (float)Determinant(arr_determinant, n);
+
+		for (int j = 0; j < n; j++)
+		{
+			arr_determinant[j][i] = arr[j][i];
+		}
+	}
+	for (int i = 0; i < n; i++)
+	{
+		arr_dets[i] = arr_dets[i] / Detk;
+	}
+	
+	printf("Solution for this system: \n");
+	for (int i = 0; i < n; i++)
+	{
+		printf("%3f ", arr_dets[i]);
+	}
+	
+}
+
+int main()
+{
+	//num_1();
+	num_2();
+	return 0;
+}
